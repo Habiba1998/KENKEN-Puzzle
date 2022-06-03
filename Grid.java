@@ -20,6 +20,44 @@ public class Grid {
     public void setGrid_cells(Cell[][] grid_cells) {
         this.grid_cells = grid_cells;
     }
+    
+     public boolean verifyAllConstraints()
+    {
+        boolean verify_result;
+        for (int i = 0; i < grid_constraints.size(); i++)
+        {
+            verify_result = grid_constraints.get(i).verifyConstraint();     // use verifyConstraint fn in the constraint class
+            if(! verify_result)
+                return false;
+        }
+        return true;
+    }
+     
+     
+     public void save_domain(ArrayList<ArrayList<Integer>> backup_domain)             // Save domain before forward checking
+    {                                                                                // or arc consistency
+        for(int i = 0; i < grid_length; i++)
+        {
+            for (int j = 0; j < grid_length; j++)
+            {
+                ArrayList <Integer> shallowCopy = new ArrayList<Integer>(grid_cells[i][j].getDomain());
+                backup_domain.add(shallowCopy);
+            }
+        }
+    }
+
+    public void reset_domain(ArrayList<ArrayList<Integer>> backup_domain)       // Reset domain if Forward checking or
+    {                                                                           // arc consistency fail
+        for(int i = 0; i < grid_length; i++)
+        {
+            for (int j = 0; j < grid_length; j++)
+            {
+                grid_cells[i][j].setDomain(backup_domain.get(grid_length * i + j));
+            }
+        }
+
+    }
+
 
       // Used in arc consistency
     public boolean check_domain()                               // Check if all unassigned variables have one value
