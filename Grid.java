@@ -8,6 +8,45 @@ public class Grid {
     private int grid_length;                                                        // the grid length or width
 
 
+    public Grid(int grid_length)                                                    // Constructor
+    {
+        this.grid_length = grid_length;
+        grid_cells = new Cell[grid_length][grid_length];                            // create array of all cells of grid
+
+
+        for(int i = 0; i < grid_length; i++)                                        // Initialize each cell in the grid
+        {
+            for (int j = 0; j < grid_length; j++)
+            {
+                grid_cells[i][j] = new Cell(grid_length, i, j);
+            }
+        }
+
+        for (int i = 0; i < grid_length; i++)                       // get the initial constraints
+        {
+            Cell [] row_cells = new Cell [grid_length];             // array of cell with row constraint
+            Cell [] column_cells = new Cell [grid_length];          // array of cells with column constraint
+            for (int j = 0; j < grid_length; j++)                   // get all the cells involved in row constraint
+            {                                                       // or column constraint
+                row_cells[j] = grid_cells[i][j];
+                column_cells[j] = grid_cells[j][i];
+            }
+            // create row and column constraint, result attribute isn't needed here
+            Constraint row_constraint = new Constraint(row_cells,Op.NotEqual, -1, grid_length);
+            Constraint column_constraint = new Constraint(column_cells, Op.NotEqual, -1, grid_length);
+            grid_constraints.add(row_constraint);                   // add row constraint to grid constraints
+            grid_constraints.add(column_constraint);                // add column constraint to grid constraint
+
+            for (int j = 0; j < grid_length; j++)                   // add row and column constraint to each cell involving it
+            {
+                grid_cells[i][j].addConstraint(row_constraint);
+                grid_cells[j][i].addConstraint(column_constraint);
+            }
+
+
+        }
+
+    }
 
     // Setters and Getters
     public int getGrid_length() {
