@@ -330,6 +330,101 @@ public class Grid {
         }
     }
 
+    //-------------------------------------Back-tracking with AC and FC flags ------------------------------------------
+    public boolean back_tracking(ArrayList<Cell> available_cells, int index, boolean forward_check, boolean arc_consistent)
+    {
+        //this.printResult(); //for debugging
+        if (available_cells.size() == index)                              // base condition: assignment is complete and satisfied
+            return true;
+        boolean constraint_satisfied = true;
+        Cell cell = available_cells.get(index);
+        for(int i = 0 ; i < cell.getDomain_length(); i++)
+        {
+            ArrayList<ArrayList<Integer>> backup_domain = new ArrayList<ArrayList<Integer>>();
+            cell.setDomain_index(i);
+            //this.printResult(); //for debugging
+            if(forward_check)
+            {
+                save_domain(backup_domain);
+
+                if(! forward_checking(cell, available_cells, index + 1))
+                {
+                    reset_domain(backup_domain);                         // if a cell has empty domain then: solution is refused
+
+                    continue;                                            // we need to reset domain of all unassigned cells
+                }                                                        // as they have values removed
+
+                sort_cells_heuristics(available_cells, index + 1);  // sort unassigned cells as domains changed
+            }
+            else if(arc_consistent)
+            {
+                save_domain(backup_domain);
+                if(! AC3_cell(cell))
+                {
+                    reset_domain(backup_domain);                         // if a cell has empty domain then: solution is refused
+                    continue;                                            // we need to reset domain of all unassigned cells
+                }                                                        // as they have values removed
+                boolean v = check_domain();
+                if (v)
+                {
+                    return true;
+                }
+                sort_cells_heuristics(available_cells, index + 1);  // sort unassigned cells as domains changed
+            }
+            else        // Backtracking only
+            {
+                constraint_satisfied = cell.verify_cell_constraint();      // check that the cell constraints are satisfied
+
+            }
+            if(constraint_satisfied || forward_check || arc_consistent)
+            {
+                constraint_satisfied = this.back_tracking(available_cells, index + 1, forward_check, arc_consistent);
+                if(constraint_satisfied)
+                    return true;
+                if (forward_check || arc_consistent)
+                    reset_domain(backup_domain);
+            }
+
+        }
+        // This code is executed if we fail to find a value satisfying the constraints so backtrack
+        cell.setValue(-1);                                                // Mark the cell as unassigned before backtracking
+        return false;
+    }
+
+
+    //------------------------------------- Interface function used in main --------------------------------------------
+    public boolean csp_back_tracking(boolean forward_check, boolean arc_consistent)          // back_tracking wrapper fn
+    {
+        if(arc_consistent)
+        {
+            if(AC3())
+            {
+                if(check_domain())
+                {
+                    return true;
+                }
+
+            }
+            else
+            {
+                return false;
+            }
+        }
+        //check on value of arcconsistency if true call AC3
+        //if AC3 returns false return false else call checkdomain function if it returns true return true else complete the rest of the code
+        ArrayList<Cell> available_cells = new ArrayList<Cell>();
+        for(int i = 0; i < grid_length; i++)                               // Initially all grid cells are unassigned so add
+        {                                                                  // to available_cells
+            for (int j = 0; j < grid_length; j++)
+            {
+                available_cells.add(grid_cells[i][j]);
+            }
+        }
+        sort_cells_heuristics(available_cells, 0);
+        return this.back_tracking(available_cells, 0, forward_check, arc_consistent);
+
+    }
+
     //-------------------------------------- Printing the Grid content -------------------------------------------------
     public void printResult()                                                   // print grid values for debugging
     {
