@@ -266,6 +266,31 @@ public class Grid {
         return true;
     }
 
+    //-------------------------------------- Heuristics ----------------------------------------------------------------
+    public void sort_cells_heuristics(ArrayList<Cell> available_cells, int start)
+    {
+        if (start >= available_cells.size() - 1)                                // return if one element is to be sorted
+            return;
+        // sort according to most constrained
+        Collections.sort(available_cells.subList(start, available_cells.size()), Cell.mostconstrained);
+        // get all max equally constrained cells
+        int equally_constrained = 1;
+        // get the minimum domain
+        int min_domain = available_cells.get(start).getDomain_length();
+        while(min_domain == available_cells.get(equally_constrained + start).getDomain_length())
+        {
+            equally_constrained ++;
+            if((equally_constrained + start) == grid_length * grid_length) {
+                break;
+            }
+
+        }
+
+        if(equally_constrained > 1)                                         // use most constraining to break the tie
+        {
+            Collections.sort(available_cells.subList(start, start + equally_constrained), Cell.mostconstraining);
+        }
+    }
 
     //-------------------------------------- Printing the Grid content -------------------------------------------------
     public void printResult()                                                   // print grid values for debugging
